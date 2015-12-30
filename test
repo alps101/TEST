@@ -1,0 +1,7 @@
+Enter file contents here
+rofl kappa
+            strReadData = Sr.ReadLine();
+                        string[] szGetString = strReadData.Split(new char[] { ',' });
+                            
+                        this.m_pEQ.Unit(0).AddAlarm(nCount);
+                        this.m_pEQ.Unit(0).Alarm(nCount).AlarmID     = int.Parse(szGetString[0]

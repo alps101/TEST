@@ -1,0 +1,129 @@
+using System;                                           // C# 시리얼 통신을 이용한 데이터 송수신 코드
+using System.Collections.Generic;                       // 2015년 11월 6일 제어팀 이정민
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.IO.Ports;
+
+namespace TD1106_SERIALPORT
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            getAvailablePorts();                         // 실행과 동시에 정의된 메소드 실행
+            InitValue();                                 // 콤보박스에 초기 선택값 지정 메소드
+
+        }
+
+        void getAvailablePorts()                         // 사용 가능 포트 확인 및 입력 메소드
+        {
+            String[] ports = SerialPort.GetPortNames();  // 사용가능한 포트를 받아옴
+            portComboBox.Items.AddRange(ports);          // 리스트 입력
+            
+
+        }
+
+        void InitValue()                                 // 초기 기본 선택값 지정 매소드
+        {                                                                      
+        /* databits, stopbits, parity, handshake 콤보박스를 첫번째 것으로 자동 선택 되도록 초기화 */
+            databitsComboBox.Text = databitsComboBox.Items[0].ToString();   
+            stopbitsComboBox.Text = stopbitsComboBox.Items[0].ToString();
+            parityComboBox.Text = parityComboBox.Items[0].ToString();
+            handshakeComboBox.Text = handshakeComboBox.Items[0].ToString();
+
+        }
+
+
+
+
+
+        private void openportButton_Click(object sender, EventArgs e)    // Open Port 버튼 매소드 정의
+        {
+            try
+            {
+                if (portComboBox.Text == "" || baudComboBox.Text == "")  // Baud Rate와 Port 모두 선택 되도록 제어
+                {
+                    textBox2.Text = "Please Select Port settings";       // 오류 메시지 출력
+
+
+                }
+                else
+                {
+                   /* 선택된 PORT값을 받아서 PortName에 삽입                              */
+                    serialPort1.PortName = portComboBox.Text;                      
+
+                   /* 선택된 baudrate값을 받아서 Int32 타입으로 변환 후 BaudRate에 삽입    */
+                    serialPort1.BaudRate = Convert.ToInt32(baudComboBox.Text);    
+
+                   /* 선택된 databits값을 받아서 Int16 타입으로 변환 후 DataBits에 삽입    */ 
+                    serialPort1.DataBits = Convert.ToInt16(databitsComboBox.Text); 
+
+                   /* 선택된 stopbits값을 받아서 형변환을 거쳐 StopBits에 삽입             */
+                    serialPort1.StopBits = (StopBits)Enum.Parse(typeof(StopBits), stopbitsComboBox.Text);
+
+                   /* 선택된 parity값을 받아서 형변환을 거쳐 Parity에 삽입                 */ 
+                    serialPort1.Parity = (Parity)Enum.Parse(typeof(Parity), parityComboBox.Text);
+
+                   /* 선택된 hadshake값을 받아서 형변환을 거쳐 Handshake에 삽입            */
+                    serialPort1.Handshake = (Handshake)Enum.Parse(typeof(Handshake), handshakeComboBox.Text);
+                    
+
+                    serialPort1.Open();             // 시리얼포트 연결 시작
+                    progressBar1.Value = 100;       // 포트가 시작됨과 동시에 진행바 채우기
+                    sendButton.Enabled = true;      // send 버튼이 작동되도록 변경
+                    readButton.Enabled = true;      // read 버튼이 작동되도록 변경
+                    textBox1.Enabled = true;        // 왼쪽 텍스트박스도 작동되도록 변경
+                    openportButton.Enabled = false; // Open Port 버튼 비활성화 
+                    closeportButton.Enabled = true; // Close Port 버튼 활성화
+
+                }
+            }
+            catch(UnauthorizedAccessException)      // 예외상황 처리
+            {
+                textBox2.Text = "Unauthorized Acess";
+
+            }
+            
+
+        }
+
+        private void closeportButton_Click(object sender, EventArgs e)  // 포트 닫는 버튼 누를 시 매소드 정의 
+        {
+            serialPort1.Close();             // 직렬포트 연결 종료
+            progressBar1.Value = 0;          // 진행바 해제
+            sendButton.Enabled = false;      // send 버튼 비활성화
+            readButton.Enabled = false;      // read 버튼 비활성화 
+            openportButton.Enabled = true;   // 포트 여는 버튼 활성화
+            closeportButton.Enabled = false; // 포트 닫는 버튼 비활성화
+            textBox1.Enabled = false;        // 왼쪽 텍스트박스 비활성화
+        }
+
+        private void sendButton_Click(object sender, EventArgs e)    // 보내는 버튼 메소드 정의
+        {
+            serialPort1.WriteLine(textBox1.Text);                    // 값을 출력버퍼에 쓰기
+            textBox1.Text = "";                                      // 텍스트박스값 초기화
+        }
+
+        private void readButton_Click(object sender, EventArgs e)    // 읽기 버튼 메소드 정의
+        {
+            try
+            {
+                textBox2.Text = serialPort1.ReadLine();              // 데이터를 오른쪽 박스에 표시
+
+            }
+            catch (TimeoutException)                                 // 타임아웃시 처리
+            {
+                textBox2.Text = "Time Out Exception";                
+            }
+            
+        }
+
+     
+   
+    }
+}
